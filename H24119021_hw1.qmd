@@ -1,0 +1,172 @@
+---
+title: "My Report"
+date: today
+author: 謝沛恩
+format:
+ pdf:
+    include-in-header:
+      - text: |
+         \usepackage{setspace,relsize}
+mainfont: "Microsoft JhengHei UI"
+toc: true
+---
+
+# Summary Staistic
+
+先觀察資料欄位
+```{r}
+library(palmerpenguins)
+summary(penguins_raw)
+sum(is.na(penguins_raw))
+```
+
+# Columns introduction  
+
+總共有17個變數，344筆資料
+```{r}
+colnames(penguins_raw)
+```
+
+連續變數（數值）：
+
+Culmen Length (mm)：企鵝鳥喙長度
+
+Culmen Depth (mm)：企鵝鳥喙寬度
+
+Flipper Length (mm)：企鵝腳蹼長度
+
+Body Mass (g)：企鵝體重
+
+Delta 15 N (o/oo) - The ratio of isotope δ15 N
+
+Delta 13 C (o/oo) - The ratio of isotope δ13 C
+
+
+類別變數（分類）：
+
+studyName：研究名稱
+
+Sample Number：編號
+
+Species：物種，有Chinstrap、Adélie、Gentoo三種
+
+Region：地區
+
+Island：島嶼，有Dream、Torgersen、Biscoe三個
+
+Stage：狀態階段
+
+Individual ID：各企鵝的個人ID
+
+Clutch Completion：卵窩完整與否(是/否)
+
+Sex：性別，男女
+
+Comments：評論
+
+
+# Continuous variables  
+
+```{r}
+# 定義連續變數
+continuous_vars <- c('Culmen Length (mm)', 'Culmen Depth (mm)', 
+                     'Flipper Length (mm)', 'Body Mass (g)',
+                     'Delta 15 N (o/oo)', 'Delta 13 C (o/oo)')
+
+# Step 1: Summary
+summary_stats <- lapply(penguins_raw[continuous_vars], summary)
+print("Summary statistics for continuous variables:")
+print(summary_stats)
+
+
+```
+從此可看出連續變數基本的敘述統計，像是平均數、最大最小值
+、缺失值個數等。
+
+Step 2:繪製每個連續變數的 boxplot，並根據 Species 分組
+```{r}
+par(mfrow = c(2, 3))  # 設置圖表佈局
+
+for (var in continuous_vars) {
+  boxplot(penguins_raw[[var]] ~ penguins_raw$Species, 
+          main = paste("Boxplot of", var), 
+          xlab = "Species", 
+          ylab = var, 
+          col = c("lightblue", "lightgreen", "lightpink"))
+}
+```
+
+# Categorical variables
+次數分配表
+
+透過次數分配表，可看出各類別的次數與比例。
+```{r}
+categorical_columns1 <- c("studyName",'Species',"Island",'Region','Stage',
+                          "Sex", 'Clutch Completion')
+# 迴圈處理每一個類別變數
+for (col in categorical_columns1) {
+  print(paste("Category Distribution for", col, ":"))
+  
+  # 計算次數分配
+  value_counts <- table(penguins_raw[[col]])
+  
+  # 計算百分比
+  percentage <- (value_counts / nrow(penguins_raw)) * 100
+  
+  # 合併次數和百分比
+  result <- data.frame(Count = value_counts, `Percentage (%)` = percentage)
+  
+  print(result)
+  cat("\n")
+}
+table(penguins_raw$`Individual ID`)#多
+table(penguins_raw$Comments)#雜
+```
+
+
+繪畫Species、studyName、Island、Sex、Clutch Completion的長條圖，
+並以Species做分類。
+```{r}
+library(ggplot2)
+#Species bar chart
+ggplot(penguins_raw, aes(x = Species)) +
+  geom_bar(fill = c("lightblue", "lightgreen", "lightpink")) +
+  labs(title = "Penguin Species Distribution", x = "Species", y = "Count") +
+  theme_minimal()
+```
+```{r}
+#studyName
+ggplot(penguins_raw, aes(x = studyName, fill = Species)) +
+  geom_bar(alpha = 0.8) +
+  scale_fill_manual(values = c("lightblue","pink","purple"), 
+                    guide = FALSE) +
+  theme_minimal() +
+  facet_wrap(~Species, ncol = 1) +
+  coord_flip()
+#Island
+ggplot(penguins_raw, aes(x = Island, fill = Species)) +
+  geom_bar(alpha = 0.8) +
+  scale_fill_manual(values = c("lightblue","pink","purple"), 
+                    guide = FALSE) +
+  theme_minimal() +
+  facet_wrap(~Species, ncol = 1) +
+  coord_flip()
+#Sex
+ggplot(penguins_raw, aes(x = Sex, fill = Species)) +
+  geom_bar(alpha = 0.8) +
+  scale_fill_manual(values = c("lightblue","pink","purple"), 
+                    guide = FALSE) +
+  theme_minimal() +
+  facet_wrap(~Species, ncol = 1) +
+  coord_flip()
+#Clutch Completion
+ggplot(penguins_raw, aes(x = `Clutch Completion`, fill = Species)) +
+  geom_bar(alpha = 0.8) +
+  scale_fill_manual(values = c("lightblue","pink","purple"), 
+                    guide = FALSE) +
+  theme_minimal() +
+  facet_wrap(~Species, ncol = 1) +
+  coord_flip()
+
+```
+
